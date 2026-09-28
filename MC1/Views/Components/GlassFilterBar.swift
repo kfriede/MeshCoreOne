@@ -3,6 +3,10 @@ import SwiftUI
 private let pillSpacing: CGFloat = 8
 private let barHorizontalPadding: CGFloat = 16
 private let barTopPadding: CGFloat = -4
+/// iOS 27 leaves 5pt less room between a `.searchable` field and the content below it than
+/// iOS 26 did, which pulled the pills up against the search field. Adding it back on iOS 27
+/// restores the iOS 26 gap. Bars with no search field above them are laid out the same on both.
+private let iOS27SearchFieldTopCompensation: CGFloat = 5
 private let barBottomPadding: CGFloat = 8
 /// The segmented `Picker` has no intrinsic vertical padding, so the glass pills' negative top
 /// inset would clip its top edge. It gets a positive inset matching the bottom for even spacing.
@@ -64,6 +68,9 @@ struct GlassFilterBar<Filter: Hashable & CaseIterable & Sendable>: View
   let pickerLabel: String
   let title: @Sendable (Filter) -> String
   var size: Size = .regular
+  /// Whether the host's `.searchable` field sits directly above the bar. Hosts without one
+  /// (the node management sheet) pass `false` so iOS 27 keeps their spacing unchanged.
+  var followsSearchField = true
 
   @Namespace private var glassNamespace
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -71,6 +78,13 @@ struct GlassFilterBar<Filter: Hashable & CaseIterable & Sendable>: View
 
   private var selectedSegmentTint: Color {
     colorScheme == .dark ? selectedSegmentTintDark : selectedSegmentTintLight
+  }
+
+  private var pillsTopPadding: CGFloat {
+    if #available(iOS 27, *), followsSearchField {
+      return barTopPadding + iOS27SearchFieldTopCompensation
+    }
+    return barTopPadding
   }
 
   var body: some View {
@@ -109,7 +123,7 @@ struct GlassFilterBar<Filter: Hashable & CaseIterable & Sendable>: View
         }
       }
       .padding(.horizontal, barHorizontalPadding)
-      .padding(.top, barTopPadding)
+      .padding(.top, pillsTopPadding)
       .padding(.bottom, barBottomPadding)
     }
   }

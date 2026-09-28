@@ -11,7 +11,8 @@ struct NodeManagementTabPicker: View {
       isSearching: false,
       pickerLabel: L10n.RemoteNodes.RemoteNodes.Settings.Tab.picker,
       title: { $0.label },
-      size: .large
+      size: .large,
+      followsSearchField: false
     )
   }
 }
